@@ -12,6 +12,7 @@ import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Component
 public class WebSocketEventListener {
@@ -22,7 +23,6 @@ public class WebSocketEventListener {
     private MongoClientService mongoClientService;
     @Autowired
     private CoordinatorService coordinatorService;
-
     /**
      * 處理WebSocket連接事件
      * @param event 連接事件

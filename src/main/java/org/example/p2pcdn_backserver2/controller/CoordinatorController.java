@@ -7,7 +7,9 @@ import org.example.p2pcdn_backserver2.model.ContentLocation;
 import org.example.p2pcdn_backserver2.payload.ContentLocationRequest;
 import org.example.p2pcdn_backserver2.service.CoordinatorService;
 import org.example.p2pcdn_backserver2.service.MongoClientService;
+import org.example.p2pcdn_backserver2.utils.WebSocketConnectionTracker;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/coordinator")
-@CrossOrigin(origins = {"http://localhost:4173", "http://localhost:3000"}, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:4173","https://b8ac-2001-b011-b803-16e4-7d91-cc02-b804-da82.ngrok-free.app/", "http://localhost:3000"})
 
 public class CoordinatorController {
 
@@ -25,6 +27,10 @@ public class CoordinatorController {
     private CoordinatorService coordinatorService;
     @Autowired
     private MongoClientService mongoClientService;
+    @Autowired
+    private WebSocketConnectionTracker tracker;
+
+    private static final int CONNECTION_LIMIT = 3; // 你要限制的數量
 
     @PostMapping("/register")
     public ResponseEntity<String> registerClient(@RequestBody Client client) {
@@ -100,9 +106,22 @@ public class CoordinatorController {
             contentHashes = contentHashes.subList(0, 100);
         }
 
+        System.out.println("Finding peers for content batch: " + contentHashes.size() + " items");
         Map<String, List<Client>> batchResults = coordinatorService.findPeersForContentBatch(contentHashes);
 
         return ResponseEntity.ok(batchResults);
+    }
+    @GetMapping("/check-load")
+    public ResponseEntity<?> checkLoad() {
+        System.out.println("Checking load on coordinator...");
+        int currentCount = tracker.getRecentConnectionCount();
+
+        if (currentCount >= CONNECTION_LIMIT) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many connections in the last 3 seconds. Please wait.");
+        }
+
+        return ResponseEntity.ok("OK");
     }
 
 }

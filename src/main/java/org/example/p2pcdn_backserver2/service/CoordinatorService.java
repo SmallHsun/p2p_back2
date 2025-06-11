@@ -46,7 +46,7 @@ public class CoordinatorService {
         clientInfo.setLongitude(longitude);
         clientInfo.setLatitude(latitude);
         // 更新Redis中的客戶端資訊
-        mongoClientService.addContentToClient(clientId, contentHash);
+//        mongoClientService.addContentToClient(clientId, contentHash);
         Query query = Query.query(Criteria.where("_id").is(contentHash));
         Update update = new Update().addToSet("clientInfo", clientInfo);
 
@@ -111,7 +111,7 @@ public class CoordinatorService {
 
         // 加入 log：印出有命中的快取項目
         if (!cached.isEmpty()) {
-            log.info("Cache hit for hashes: {}", cached.keySet());
+            log.info("Cache hit for hashes: {}", cached.keySet().size());
         }
 
         // 2. 判斷有哪些 hash 沒命中 Redis
